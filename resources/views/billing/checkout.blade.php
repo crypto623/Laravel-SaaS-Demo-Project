@@ -141,12 +141,16 @@
           if (paymentMethod) {
             return true
           }
+          var card_holder_name = $('#card-holder-name').val();
+          if (card_holder_name == null || card_holder_name == "" || card_holder_name == undefined) {
+            return false
+          }
           stripe.confirmCardSetup(
             "{{ $intent->client_secret }}",
             {
               payment_method: {
                 card: card,
-                billing_details: {name: $('#card-holder-name').val()}
+                billing_details: {name: card_holder_name }
               }
             }
           ).then(function (result) {
@@ -169,18 +173,17 @@
             contentType: "application/json",
             dataType: 'json'
           }).done(function(result) {
-            let plan_paying_amount = $('#plan-paying-amount').val();
             if (result.error_text) {
               $('#coupon-text').text(result.error_text);
-              $('#card-button').text('Pay $' + plan_paying_amount);
             } else {
               $('#coupon-text').text(result.name);
+              let plan_paying_amount = parseFloat($('#plan-paying-amount').val());
               let tax_percent = $('#tax-percent').val();
-              let pay_amount = (plan_paying_amount * (1 - result.percent_off / 100)).toFixed(2);
+              let pay_amount = (plan_paying_amount * (1 - parseFloat(result.percent_off) / 100)).toFixed(2);
               $('#amount_subtotal').text('$' + pay_amount);
               let tax_amount = (pay_amount * tax_percent / 100).toFixed(2);
               $('#amount_taxes').text('$' + tax_amount);
-              pay_amount = (pay_amount + tax_amount).toFixed(2);
+              pay_amount = (parseFloat(pay_amount) + parseFloat(tax_amount)).toFixed(2);
               $('#amount_total').text('$' + pay_amount);
               $('#card-button').text('Pay $' + pay_amount);
             }
